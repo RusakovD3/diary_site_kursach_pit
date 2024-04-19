@@ -22,9 +22,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     function displayCSV(csvContent) {
         const rows = csvContent.split('\n');
         let html = '<table id="students-table">';
-    
         rows.forEach((row, index) => {
-            // Разделяем строки по ";", предполагая что это разделитель в CSV
             const columns = row.split(';');
             if(index === 0) {
                 html += '<thead><tr>';
@@ -33,7 +31,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
             } else {
                 html += '<tr>';
             }
-    
             columns.forEach(column => {
                 if(index === 0) {
                     html += `<th>${column}</th>`;
@@ -41,21 +38,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
                     html += `<td>${column}</td>`;
                 }
             });
-    
+            if(index > 0) {
+                html += `<td><button class="delete-btn" data-row-index="${index}">Удалить</button></td>`;
+            }
             if(index === 0) {
-                html += '</tr></thead>';
+                html += '<th>Действия</th></tr></thead>';
             } else {
                 html += '</tr>';
             }
         });
-    
         if(rows.length > 1) {
             html += '</tbody>';
         }
         html += '</table>';
-    
         dataPreview.innerHTML = html;
+        // Вызовите эту функцию после отображения таблицы
+        setupDeleteButtons();
     }
+    
+
     
 });
 
@@ -80,6 +81,18 @@ function openTab(tabName) {
         generateStatistics(); 
     }
 }
+
+function setupDeleteButtons() {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Находим родительский элемент 'tr' и удаляем его
+            this.closest('tr').remove();
+            generateStatistics();
+        });
+    });
+}
+
+
 
 // Устанавливаем событие onClick для каждой вкладки в навигации
 document.querySelectorAll('nav ul li a').forEach(link => {
@@ -451,3 +464,71 @@ function getRandomColor() {
     }
     return color;
 }
+
+// Функция для преобразования данных таблицы в строку для файла, исключая колонку с кнопками "Удалить"
+function tableToDataString(table, separator = ',', lineEnding = '\n', excludeLastColumn = true) {
+    let dataString = '';
+    for (const row of table.rows) {
+        let rowData = [];
+        const cellsLength = excludeLastColumn ? row.cells.length - 1 : row.cells.length;
+        for (let i = 0; i < cellsLength; i++) {
+            let cellText = row.cells[i].textContent;
+            // Удаление переводов строки и замена кавычек для корректного CSV формата
+            cellText = cellText.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""');
+            rowData.push(`${cellText}`);
+        }
+        dataString += rowData.join(separator) + lineEnding;
+    }
+    return dataString;
+}
+
+// Функция для преобразования данных таблицы в строку CSV
+function tableToCSVString(table, lineEnding = '\r\n') {
+    let csvString = '';
+    // Пропускаем последний столбец с кнопками "Удалить"
+    const columnsCount = table.rows[0].cells.length - 1; 
+    for (const row of table.rows) {
+        let rowData = [];
+        for (let i = 0; i < columnsCount; i++) {
+            let cellText = row.cells[i].textContent;
+            cellText = cellText.replace(/"/g, '""'); // Экранируем кавычки
+            rowData.push(`"${cellText}"`); // Добавляем кавычки вокруг каждого значения
+        }
+        csvString += rowData.join(';') + lineEnding;
+    }
+    return csvString;
+}
+
+// Функция для скачивания файлов с UTF-8 BOM
+function downloadFile(filename, content, mimeType) {
+    const BOM = "\uFEFF"; // UTF-8 Byte Order Mark
+    const blob = new Blob([BOM + content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = filename;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(url);
+}
+
+// Функция для скачивания таблицы в различных форматах
+function downloadTableData() {
+    const table = document.getElementById('students-table');
+    if (table) {
+        // Строка таблицы для TXT
+        const txtData = tableToDataString(table, ';', '\r\n'); // Используйте пробел в качестве разделителя
+        downloadFile('data.txt', txtData, 'text/plain;charset=utf-8');
+
+        // Строка таблицы для CSV
+        const csvData = tableToDataString(table, ';', '\r\n'); // Используйте точку с запятой для Excel
+        downloadFile('data.csv', csvData, 'text/csv;charset=utf-8');
+
+        // Строка таблицы для Excel (простой формат, который Excel может открыть)
+        const xlsData = tableToDataString(table, ';', '\r\n'); // Используйте табуляцию для Excel
+        downloadFile('data.xls', xlsData, 'application/octet-stream');
+    }
+}
+
+document.getElementById('download-data-button').addEventListener('click', downloadTableData);

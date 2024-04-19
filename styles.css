@@ -212,3 +212,33 @@ button:hover {
     margin: 20px auto;
     border-radius: 50%;
 }
+
+#download-data-button {
+    padding: 10px 15px;
+    background-color: #4CAF50; /* Зеленый */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#download-data-button:hover {
+    background-color: #45a049;
+}
+
+
+.delete-btn {
+    padding: 5px 10px;
+    background-color: #ff4d4d; /* Красный цвет для кнопки удаления */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.delete-btn:hover {
+    background-color: #ff3333;
+}
+
