@@ -212,7 +212,7 @@ function generateStatistics() {
         }
 
         const classInfo = row.cells[1].textContent;
-        const grades = Array.from(row.cells).slice(2).map(cell => parseInt(cell.textContent, 10));
+        const grades = Array.from(row.cells).slice(2, -1).map(cell => parseInt(cell.textContent, 10));
 
         // Инициализация статистики для класса, если ещё не существует
         if (!statistics[classInfo]) {
@@ -253,7 +253,7 @@ function generateStatistics() {
         if (row.rowIndex === 0 || row.cells.length < 7) continue; // Пропускаем заголовок и неполные строки
 
         const studentName = row.cells[0].textContent;
-        const grades = Array.from(row.cells).slice(2).map(cell => parseInt(cell.textContent, 10));
+        const grades = Array.from(row.cells).slice(2, -1).map(cell => parseInt(cell.textContent, 10));
 
         // Инициализация статистики для ученика, если ещё не существует
         if (!studentStatistics[studentName]) {
